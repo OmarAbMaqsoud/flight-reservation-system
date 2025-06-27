@@ -8,31 +8,24 @@ class FlightReservationApp:
         self.root = root
         self.root.title("Flight Reservation System")
         
-        # Set window size and position it in the center of the screen
         window_width = 1000
         window_height = 700
         screen_width = root.winfo_screenwidth()
         screen_height = root.winfo_screenheight()
         
-        # Calculate position x and y coordinates
         x = (screen_width/2) - (window_width/2)
         y = (screen_height/2) - (window_height/2)
         self.root.geometry('%dx%d+%d+%d' % (window_width, window_height, x, y))
         
-        # Initialize database
         self.init_db()
         
-        # Create styles
         self.create_styles()
         
-        # Create main container
         self.main_container = ttk.Frame(self.root)
         self.main_container.pack(fill=tk.BOTH, expand=True)
         
-        # Create all frames
         self.create_frames()
         
-        # Show home frame
         self.show_frame("Home")
     
     def create_styles(self):
@@ -59,7 +52,6 @@ class FlightReservationApp:
         self.conn = sqlite3.connect('flights.db')
         self.cursor = self.conn.cursor()
         
-        # Create tables if they don't exist
         self.cursor.execute('''
             CREATE TABLE IF NOT EXISTS reservations (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -73,7 +65,6 @@ class FlightReservationApp:
             )
         ''')
         
-        # Insert sample data if table is empty
         self.cursor.execute("SELECT COUNT(*) FROM reservations")
         if self.cursor.fetchone()[0] == 0:
             sample_reservations = [
@@ -88,37 +79,29 @@ class FlightReservationApp:
             self.conn.commit()
     
     def create_frames(self):
-        # Dictionary to hold all frames
         self.frames = {}
         
-        # Home Frame
         self.frames["Home"] = ttk.Frame(self.main_container)
         self.create_home_frame()
         
-        # Booking Frame
         self.frames["Booking"] = ttk.Frame(self.main_container)
         self.create_booking_frame()
         
-        # Reservations Frame
         self.frames["Reservations"] = ttk.Frame(self.main_container)
         self.create_reservations_frame()
         
-        # Edit Frame
         self.frames["Edit"] = ttk.Frame(self.main_container)
         self.create_edit_frame()
         
-        # Stack all frames on top of each other
         for frame in self.frames.values():
             frame.grid(row=0, column=0, sticky="nsew")
     
     def create_home_frame(self):
         frame = self.frames["Home"]
         
-        # Header
         header = ttk.Label(frame, text="Flight Reservation System", style='Header.TLabel')
         header.pack(pady=40)
         
-        # Buttons
         btn_frame = ttk.Frame(frame)
         btn_frame.pack(pady=20)
         
@@ -137,11 +120,9 @@ class FlightReservationApp:
     def create_booking_frame(self):
         frame = self.frames["Booking"]
         
-        # Header
         header = ttk.Label(frame, text="Book a Flight", style='Header.TLabel')
         header.grid(row=0, column=0, columnspan=2, pady=20)
         
-        # Form fields
         fields = [
             ("Passenger Name", "name"),
             ("Flight Number", "flight_number"),
@@ -159,7 +140,6 @@ class FlightReservationApp:
             entry.grid(row=i+1, column=1, padx=10, pady=5, sticky="w")
             self.booking_entries[field] = entry
         
-        # Buttons
         btn_frame = ttk.Frame(frame)
         btn_frame.grid(row=len(fields)+2, column=0, columnspan=2, pady=20)
         
@@ -173,14 +153,11 @@ class FlightReservationApp:
     def create_reservations_frame(self):
         frame = self.frames["Reservations"]
         
-        # Header
         header = ttk.Label(frame, text="All Reservations", style='Header.TLabel')
         header.pack(pady=20)
         
-        # Treeview for reservations
         self.reservations_tree = ttk.Treeview(frame, columns=('id', 'name', 'flight', 'departure', 'destination', 'date', 'seat'), show='headings')
         
-        # Define headings
         self.reservations_tree.heading('id', text='ID')
         self.reservations_tree.heading('name', text='Passenger Name')
         self.reservations_tree.heading('flight', text='Flight Number')
@@ -189,7 +166,6 @@ class FlightReservationApp:
         self.reservations_tree.heading('date', text='Date')
         self.reservations_tree.heading('seat', text='Seat Number')
         
-        # Set column widths
         self.reservations_tree.column('id', width=50, anchor='center')
         self.reservations_tree.column('name', width=150)
         self.reservations_tree.column('flight', width=100, anchor='center')
@@ -198,14 +174,12 @@ class FlightReservationApp:
         self.reservations_tree.column('date', width=100, anchor='center')
         self.reservations_tree.column('seat', width=80, anchor='center')
         
-        # Add scrollbar
         scrollbar = ttk.Scrollbar(frame, orient="vertical", command=self.reservations_tree.yview)
         scrollbar.pack(side="right", fill="y")
         self.reservations_tree.configure(yscrollcommand=scrollbar.set)
         
         self.reservations_tree.pack(fill='both', expand=True, padx=20, pady=10)
         
-        # Buttons
         btn_frame = ttk.Frame(frame)
         btn_frame.pack(pady=10)
         
@@ -230,7 +204,6 @@ class FlightReservationApp:
         header = ttk.Label(frame, text="Edit Reservation", style='Header.TLabel')
         header.grid(row=0, column=0, columnspan=2, pady=20)
         
-        # Form fields (same as booking frame)
         fields = [
             ("Passenger Name", "name"),
             ("Flight Number", "flight_number"),
@@ -248,7 +221,6 @@ class FlightReservationApp:
             entry.grid(row=i+1, column=1, padx=10, pady=5, sticky="w")
             self.edit_entries[field] = entry
         
-        # Buttons
         btn_frame = ttk.Frame(frame)
         btn_frame.grid(row=len(fields)+2, column=0, columnspan=2, pady=20)
         
@@ -263,13 +235,11 @@ class FlightReservationApp:
         frame = self.frames[frame_name]
         frame.tkraise()
         
-        # Refresh data when showing reservations frame
         if frame_name == "Reservations":
             self.load_reservations()
     
     def submit_booking(self):
         try:
-            # Get data from entries
             data = (
                 self.booking_entries['name'].get(),
                 self.booking_entries['flight_number'].get(),
@@ -279,11 +249,9 @@ class FlightReservationApp:
                 self.booking_entries['seat_number'].get()
             )
             
-            # Validate data
             if not all(data):
                 raise ValueError("All fields are required")
             
-            # Insert into database
             self.cursor.execute('''
                 INSERT INTO reservations (name, flight_number, departure, destination, date, seat_number)
                 VALUES (?, ?, ?, ?, ?, ?)
@@ -292,26 +260,21 @@ class FlightReservationApp:
             
             messagebox.showinfo("Success", "Reservation created successfully!")
             
-            # Clear form
             for entry in self.booking_entries.values():
                 entry.delete(0, tk.END)
             
-            # Return to home
             self.show_frame("Home")
             
         except Exception as e:
             messagebox.showerror("Error", str(e))
     
     def load_reservations(self):
-        # Clear existing data
         for item in self.reservations_tree.get_children():
             self.reservations_tree.delete(item)
         
-        # Load from database
         self.cursor.execute("SELECT id, name, flight_number, departure, destination, date, seat_number FROM reservations ORDER BY created_at DESC")
         reservations = self.cursor.fetchall()
         
-        # Add to treeview
         for res in reservations:
             self.reservations_tree.insert('', 'end', values=res)
     
@@ -321,21 +284,17 @@ class FlightReservationApp:
             messagebox.showwarning("Warning", "Please select a reservation to edit")
             return
         
-        # Get selected reservation ID
         reservation_id = self.reservations_tree.item(selected[0])['values'][0]
         self.current_reservation_id = reservation_id
         
-        # Get reservation details from database
         self.cursor.execute("SELECT name, flight_number, departure, destination, date, seat_number FROM reservations WHERE id = ?", (reservation_id,))
         reservation = self.cursor.fetchone()
         
         if reservation:
-            # Fill the edit form
             for field, value in zip(['name', 'flight_number', 'departure', 'destination', 'date', 'seat_number'], reservation):
                 self.edit_entries[field].delete(0, tk.END)
                 self.edit_entries[field].insert(0, value)
             
-            # Show edit frame
             self.show_frame("Edit")
     
     def update_reservation(self):
@@ -343,7 +302,6 @@ class FlightReservationApp:
             if not self.current_reservation_id:
                 raise ValueError("No reservation selected")
             
-            # Get data from entries
             data = (
                 self.edit_entries['name'].get(),
                 self.edit_entries['flight_number'].get(),
@@ -353,11 +311,9 @@ class FlightReservationApp:
                 self.edit_entries['seat_number'].get()
             )
             
-            # Validate data
             if not all(data):
                 raise ValueError("All fields are required")
             
-            # Update in database
             self.cursor.execute('''
                 UPDATE reservations 
                 SET name = ?, flight_number = ?, departure = ?, destination = ?, date = ?, seat_number = ?
@@ -367,7 +323,6 @@ class FlightReservationApp:
             
             messagebox.showinfo("Success", "Reservation updated successfully!")
             
-            # Return to reservations
             self.show_frame("Reservations")
             
         except Exception as e:
@@ -379,20 +334,16 @@ class FlightReservationApp:
             messagebox.showwarning("Warning", "Please select a reservation to delete")
             return
         
-        # Confirm deletion
         if not messagebox.askyesno("Confirm", "Are you sure you want to delete this reservation?"):
             return
         
-        # Get selected reservation ID
         reservation_id = self.reservations_tree.item(selected[0])['values'][0]
         
-        # Delete from database
         self.cursor.execute("DELETE FROM reservations WHERE id = ?", (reservation_id,))
         self.conn.commit()
         
         messagebox.showinfo("Success", "Reservation deleted successfully!")
         
-        # Refresh list
         self.load_reservations()
 
 if __name__ == "__main__":
